@@ -4,10 +4,12 @@ from typing import Any, Dict, List, Optional, Type
 import attr
 from brotli_asgi import BrotliMiddleware
 from fastapi import APIRouter, FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
 from stac_pydantic import Collection, Item, ItemCollection
 from stac_pydantic.api import ConformanceClasses, LandingPage
 from stac_pydantic.version import STAC_VERSION
+
 
 from stac_fastapi.api.errors import DEFAULT_STATUS_CODES, add_exception_handlers
 from stac_fastapi.api.models import (
@@ -234,3 +236,16 @@ class StacApi:
 
         # add compression middleware
         self.app.add_middleware(BrotliMiddleware)
+
+        # add cors support for origins
+        origins = [
+            "http://localhost:8080",
+        ]
+        self.app.add_middleware(
+            CORSMiddleware,
+            allow_origins=origins,
+            allow_credentials=True,
+            allow_methods=["*"],
+            allow_headers=["*"],
+        )
+
