@@ -1,4 +1,4 @@
-FROM python:3.8-slim as base
+FROM python:3.9.5-slim as base
 
 FROM base as builder
 # Any python libraries that require system libraries to be installed will likely

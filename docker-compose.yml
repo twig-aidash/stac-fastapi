@@ -91,7 +91,7 @@ services:
       - ./stac_fastapi:/app/stac_fastapi
       - ./scripts:/app/scripts
     command: >
-      bash -c "sleep 10 && cd stac_fastapi/sqlalchemy && alembic upgrade head && python /app/scripts/ingest_joplin.py http://app-sqlalchemy:8081"
+      bash -c "sleep 20 && cd stac_fastapi/sqlalchemy && alembic upgrade head && python /app/scripts/ingest_joplin.py http://app-sqlalchemy:8081"
     depends_on:
       - database
       - app-sqlalchemy
@@ -109,7 +109,7 @@ services:
       - ./stac_fastapi:/app/stac_fastapi
       - ./scripts:/app/scripts
     command: >
-      bash -c "sleep 10 && python /app/scripts/ingest_joplin.py http://app-pgstac:8082"
+      bash -c "sleep 20 && python /app/scripts/ingest_joplin.py http://app-pgstac:8082"
     depends_on:
       - database
       - app-pgstac
