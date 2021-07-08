@@ -9,6 +9,8 @@ import requests
 workingdir = Path(__file__).parent.absolute()
 joplindata = workingdir.parent / "stac_fastapi" / "testdata" / "joplin"
 
+fo_data = workingdir.parent / "stac_fastapi" / "testdata" / "forest-observatory"
+
 app_host = sys.argv[1]
 
 if not app_host:
@@ -20,7 +22,6 @@ def ingest_joplin_data(app_host: str = app_host, data_dir: Path = joplindata):
 
     with open(data_dir / "collection.json") as f:
         collection = json.load(f)
-
     r = requests.post(urljoin(app_host, "collections"), json=collection)
     if r.status_code not in (200, 409):
         r.raise_for_status()
@@ -37,6 +38,36 @@ def ingest_joplin_data(app_host: str = app_host, data_dir: Path = joplindata):
             continue
         r.raise_for_status()
 
+def ingest_forest_observatory_data(app_host: str = app_host, data_dir: Path=fo_data):
+    "ingest forest observatory data"
+    with open(data_dir / "collection.json") as f:
+        collection = json.load(f)
+    
+    links = collection["links"]
+    collection["links"] = []
+    r = requests.post(urljoin(app_host, "collections"), json=collection)
+    if r.status_code not in (200, 409):
+        r.raise_for_status()
+    features = []
+
+    for link in links:
+        if (link["type"] != "application/json") or (link["rel"] != "item"):
+            continue
+        r_feature = requests.get(link["href"])
+        if r_feature.status_code not in (200, 409):
+            r_feature.raise_for_status()
+        print(r_feature.text)
+        features.append(r_feature.json())
+
+    for feat in features:
+        r = requests.post(
+            urljoin(app_host, f"collections/{collection['id']}/items"), json=feat
+        )
+        print(feat)
+        if r.status_code == 409:
+            continue
+        r.raise_for_status()
 
 if __name__ == "__main__":
     ingest_joplin_data()
+    ingest_forest_observatory_data()
