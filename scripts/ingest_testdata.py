@@ -56,14 +56,12 @@ def ingest_forest_observatory_data(app_host: str = app_host, data_dir: Path=fo_d
         r_feature = requests.get(link["href"])
         if r_feature.status_code not in (200, 409):
             r_feature.raise_for_status()
-        print(r_feature.text)
         features.append(r_feature.json())
 
     for feat in features:
         r = requests.post(
             urljoin(app_host, f"collections/{collection['id']}/items"), json=feat
         )
-        print(feat)
         if r.status_code == 409:
             continue
         r.raise_for_status()
