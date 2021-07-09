@@ -45,7 +45,7 @@ services:
       - "5439:5432"
     command: postgres -N 500
 
-  pgstac-loadjoplin:
+  pgstac-loadtestdata:
     image: stac-utils/stac-fastapi
     environment:
       - ENVIRONMENT=development
