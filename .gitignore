@@ -126,3 +126,7 @@ docs/api/*
 
 # Direnv
 .envrc
+
+# ecs
+
+ecs-params.yml
