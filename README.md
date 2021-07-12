@@ -73,3 +73,16 @@ Run individual tests by running pytest within the docker container:
 make docker-shell
 $ pytest -v
 ```
+
+## Aidash specific
+
+### Local dev
+
+  $ docker-compose -f docker-compose.dev.yml up --build --force-recreate
+
+### Deploying to AWS
+
+ - Setup [ECS CLI](https://github.com/aws/amazon-ecs-cli/pull/1105)
+ - Read through [sample deployment to Fargate](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-cli-tutorial-fargate.html)
+ - setup docker [ecs](https://www.docker.com/blog/docker-compose-from-local-to-amazon-ecs/), or [ecs-cli compose](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/cmd-ecs-cli-compose-up.html) to deploy.
+ - `cp ecs-params.example.yml ecs-params.yml`, one has to replace subnet ids, and security group id in this file before deploying.
