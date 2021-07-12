@@ -5,6 +5,31 @@ task_definition:
   task_size:
     mem_limit: 0.5GB
     cpu_limit: 256
+  services:
+    database:
+      essential: true
+      healthcheck:
+        test: ["CMD-SHELL", "pg_isready -h localhost -p 5432 -U username"]
+        interval: 5s
+        timeout: 5s
+        retries: 10
+        start_period: 20s
+    app-pgstac:
+      essential: true
+      healthcheck:
+        test: [ "CMD-SHELL", "curl -f http://localhost:8082/ || exit 1" ]
+        interval: 10s
+        timeout: 5s
+        retries: 10
+        start_period: 30s
+      depends_on:
+        - container_name: database
+          condition: HEALTHY
+    pgstac-loadtestdata:
+      essential: false
+      depends_on:
+        - container_name: app-pgstac
+          condition: HEALTHY
 run_params:
   network_configuration:
     awsvpc_configuration:
