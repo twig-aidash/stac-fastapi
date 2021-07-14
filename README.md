@@ -80,9 +80,22 @@ $ pytest -v
 
   $ docker-compose -f docker-compose.dev.yml up --build --force-recreate
 
+There are three components of this service
+
+ - `docker-compose.yml` has app-pgstac which hosts the STAC API
+ - `docker-compose.migration.yml` has migration services namely `database`, and `load-pgstactestdata` which are used to migrate and seed the database with dummy data respectively. **NOTE**: these are to be triggered individually from local systems only.
+
+ Apart from these, there is a `docker-compose.dev.yml` which sets up a local dev environment without affecting any production systems.
+
+
 ### Deploying to AWS
+
+  $ cp .env.example .env
+
+Fill the environment variable as per hosting needs.
 
  - Setup [ECS CLI](https://github.com/aws/amazon-ecs-cli/pull/1105)
  - Read through [sample deployment to Fargate](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-cli-tutorial-fargate.html)
  - setup docker [ecs](https://www.docker.com/blog/docker-compose-from-local-to-amazon-ecs/), or [ecs-cli compose](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/cmd-ecs-cli-compose-up.html) to deploy.
  - `cp ecs-params.example.yml ecs-params.yml`, one has to replace subnet ids, and security group id in this file before deploying.
+
