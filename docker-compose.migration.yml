@@ -1,0 +1,27 @@
+version: '3'
+  database:
+    container_name: stac-db
+    image: 028659530042.dkr.ecr.us-west-2.amazonaws.com/pgstac-db-aidash:latest
+    environment:
+      - PGUSER=${PGUSER}
+      - PGPASSWORD=${PGPASSWORD}
+      - POSTGRES_PASSWORD=${PGPASSWORD}
+      - PGDATABASE=${PGDATABASE}
+      - PGHOST=${PGHOST}
+      - PGPORT=${PGPORT}
+    ports:
+      - "5433:5433"
+    command: psql -f /sql/pgstac.sql
+
+  pgstac-loadtestdata:
+    image: 028659530042.dkr.ecr.us-west-2.amazonaws.com/stac-fastapi-aidash:latest
+    environment:
+        - ENVIRONMENT=development
+    command: 
+        - "./scripts/wait-for-it.sh"
+        - "--timeout=20"
+        - "${STAC_URI}"
+        - "--"
+        - "python"
+        - "/app/scripts/ingest_testdata.py"
+        - "${STAC_URI}"

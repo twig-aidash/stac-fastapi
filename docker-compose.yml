@@ -3,18 +3,18 @@ version: '3'
 services:
   app-pgstac:
     container_name: stac-fastapi-pgstac
-    image: 028659530042.dkr.ecr.us-east-2.amazonaws.com/stac-fastapi-aidash:latest
+    image: 028659530042.dkr.ecr.us-west-2.amazonaws.com/stac-fastapi-aidash:latest
     environment:
       - APP_HOST=0.0.0.0
       - APP_PORT=8082
       - RELOAD=false
       - ENVIRONMENT=local
-      - POSTGRES_USER=username
-      - POSTGRES_PASS=password
-      - POSTGRES_DBNAME=postgis
-      - POSTGRES_HOST_READER=localhost
-      - POSTGRES_HOST_WRITER=localhost
-      - POSTGRES_PORT=5432
+      - POSTGRES_USER=${PGUSER}
+      - POSTGRES_PASS=${PGPASSWORD}
+      - POSTGRES_DBNAME=${PGDATABASE}
+      - POSTGRES_HOST_READER=${PGHOST}
+      - POSTGRES_HOST_WRITER=${PGHOST}
+      - POSTGRES_PORT=${PGPORT}
       - WEB_CONCURRENCY=10
       - VSI_CACHE=TRUE
       - GDAL_HTTP_MERGE_CONSECUTIVE_RANGES=YES
@@ -29,50 +29,5 @@ services:
         awslogs-group: pgstac-fastapi
         awslogs-region: us-east-2
         awslogs-stream-prefix: app-pgstac
-    depends_on:
-      - database
     command:
       python -m stac_fastapi.pgstac.app
-
-  database:
-    container_name: stac-db
-    image: bitner/pgstac:0.2.4
-    environment:
-      - POSTGRES_USER=username
-      - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=postgis
-    ports:
-      - "5432:5432"
-    logging:
-      driver: awslogs
-      options:
-        awslogs-group: pgstac-fastapi-db
-        awslogs-region: us-east-2
-        awslogs-stream-prefix: database
-    command: postgres -N 500
-
-  pgstac-loadtestdata:
-    image: 028659530042.dkr.ecr.us-east-2.amazonaws.com/stac-fastapi-aidash:latest
-    environment:
-      - ENVIRONMENT=development
-      - POSTGRES_USER=username
-      - POSTGRES_PASS=password
-      - POSTGRES_DBNAME=postgis
-      - POSTGRES_HOST=database
-      - POSTGRES_PORT=5432
-    command: 
-      - "./scripts/wait-for-it.sh"
-      - "localhost:8082"
-      - "--"
-      - "python"
-      - "/app/scripts/ingest_testdata.py"
-      - "http://localhost:8082"
-    depends_on: 
-      - database
-      - app-pgstac
-    logging:
-      driver: awslogs
-      options:
-        awslogs-group: pgstac-fastapi-testdata
-        awslogs-region: us-east-2
-        awslogs-stream-prefix: pgstac-loadtestdata
