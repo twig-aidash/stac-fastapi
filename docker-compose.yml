@@ -27,7 +27,7 @@ services:
       driver: awslogs
       options:
         awslogs-group: pgstac-fastapi
-        awslogs-region: us-east-2
+        awslogs-region: us-west-2
         awslogs-stream-prefix: app-pgstac
     command:
       python -m stac_fastapi.pgstac.app
