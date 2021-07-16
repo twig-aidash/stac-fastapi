@@ -1,7 +1,7 @@
 version: '3'
   database:
     container_name: stac-db
-    image: 028659530042.dkr.ecr.us-west-2.amazonaws.com/pgstac-db-aidash:latest
+    image: ${DB_IMAGE_URI}
     environment:
       - PGUSER=${PGUSER}
       - PGPASSWORD=${PGPASSWORD}
@@ -14,7 +14,7 @@ version: '3'
     command: psql -f /sql/pgstac.sql
 
   pgstac-loadtestdata:
-    image: 028659530042.dkr.ecr.us-west-2.amazonaws.com/stac-fastapi-aidash:latest
+    image: ${API_IMAGE_URI}
     environment:
         - ENVIRONMENT=development
     command: 
