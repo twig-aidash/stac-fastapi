@@ -47,7 +47,7 @@ class BaseLinks:
     @property
     def base_url(self):
         """Get the base url."""
-        return str(self.request.base_url)
+        return str(self.request._url)
 
     @property
     def url(self):
@@ -164,7 +164,7 @@ class CollectionLinksBase(BaseLinks):
         return Link(
             rel=rel,
             type=MimeTypes.json,
-            href=self.resolve(f"/collections/{self.collection_id}"),
+            href=self.resolve(f"collections/{self.collection_id}"),
         )
 
 
@@ -189,7 +189,7 @@ class CollectionLinks(CollectionLinksBase):
         return Link(
             rel="items",
             type=MimeTypes.geojson,
-            href=self.resolve(f"/collections/{self.collection_id}/items"),
+            href=self.resolve(f"collections/{self.collection_id}/items"),
         )
 
 
@@ -205,7 +205,7 @@ class ItemLinks(CollectionLinksBase):
             rel=Relations.self,
             type=MimeTypes.geojson,
             href=self.resolve(
-                f"/collections/{self.collection_id}/items/{self.item_id}"
+                f"collections/{self.collection_id}/items/{self.item_id}"
             ),
         )
 
@@ -224,7 +224,7 @@ class ItemLinks(CollectionLinksBase):
             type=MimeTypes.json,
             title="tiles",
             href=self.resolve(
-                f"/collections/{self.collection_id}/items/{self.item_id}/tiles",
+                f"collections/{self.collection_id}/items/{self.item_id}/tiles",
             ),
         )
 
@@ -241,7 +241,7 @@ class TileLinks:
         """Post init handler."""
         self.item_uri = urljoin(
             self.base_url,
-            f"/collections/{self.collection_id}/items/{self.item_id}",
+            f"collections/{self.collection_id}/items/{self.item_id}",
         )
 
     def link_tiles(self) -> OGCTileLink:

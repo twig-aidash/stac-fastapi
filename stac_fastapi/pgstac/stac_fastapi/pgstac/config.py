@@ -22,6 +22,10 @@ class Settings(ApiSettings):
     postgres_port: str
     postgres_dbname: str
 
+    aws_region: str = "us-west-2"
+    deployment_stage: str = "pgstac-beta"
+
+
     db_min_conn_size: int = 10
     db_max_conn_size: int = 10
     db_max_queries: int = 50000

@@ -19,10 +19,25 @@ from stac_fastapi.types.errors import NotFoundError
 
 NumType = Union[float, int]
 
+from stac_fastapi.pgstac.config import Settings
+
+settings = Settings()
 
 @attr.s
 class CoreCrudClient(BaseCoreClient):
     """Client for core endpoints defined by stac."""
+
+    @staticmethod
+    def _get_base_url(request):
+        headers = request.headers
+        # check if deployed behind a proxy - currently API Gateway
+        if "x-amzn-apigateway-api-id" not in headers.keys():
+            return str(request.base_url)
+        else:
+            apigateway_id = request.headers["x-amzn-apigateway-api-id"]
+            aws_region=settings.aws_region
+            deployment_stage=settings.deployment_stage
+            return f"https://{apigateway_id}.execute-api.{aws_region}.amazonaws.com/{deployment_stage}/"
 
     async def landing_page(self, **kwargs) -> ORJSONResponse:
         """Landing page.
@@ -33,7 +48,8 @@ class CoreCrudClient(BaseCoreClient):
             API landing page, serving as an entry point to the API.
         """
         request = kwargs["request"]
-        base_url = str(request.base_url)
+        base_url = CoreCrudClient._get_base_url(request)
+        request._url = base_url
         landing_page = LandingPage(
             title="Arturo STAC API",
             description="Arturo raster datastore",
@@ -47,24 +63,24 @@ class CoreCrudClient(BaseCoreClient):
                     rel=Relations.docs,
                     type=MimeTypes.html,
                     title="OpenAPI docs",
-                    href=urljoin(base_url, "/docs"),
+                    href=urljoin(base_url, "docs"),
                 ),
                 Link(
                     rel=Relations.conformance,
                     type=MimeTypes.json,
                     title="STAC/WFS3 conformance classes implemented by this server",
-                    href=urljoin(base_url, "/conformance"),
+                    href=urljoin(base_url, "conformance"),
                 ),
                 Link(
                     rel=Relations.search,
                     type=MimeTypes.geojson,
                     title="STAC search",
-                    href=urljoin(base_url, "/search"),
+                    href=urljoin(base_url, "search"),
                 ),
                 Link(
                     rel="data",
                     type=MimeTypes.json,
-                    href=urljoin(base_url, "/collections"),
+                    href=urljoin(base_url, "collections"),
                 ),
             ],
         )
@@ -91,6 +107,7 @@ class CoreCrudClient(BaseCoreClient):
     async def _all_collections_func(self, **kwargs) -> List[Dict]:
         """Read all collections from the database."""
         request = kwargs["request"]
+        request._url = CoreCrudClient._get_base_url(request)
         pool = request.app.state.readpool
 
         async with pool.acquire() as conn:
@@ -128,6 +145,7 @@ class CoreCrudClient(BaseCoreClient):
             Collection.
         """
         request = kwargs["request"]
+        request._url = CoreCrudClient._get_base_url(request)
         pool = kwargs["request"].app.state.readpool
         async with pool.acquire() as conn:
             q, p = render(
@@ -159,6 +177,7 @@ class CoreCrudClient(BaseCoreClient):
             ItemCollection containing items which match the search criteria.
         """
         request = kwargs["request"]
+        request._url = CoreCrudClient._get_base_url(request)
         pool = request.app.state.readpool
 
         # pool = kwargs["request"].app.state.readpool
