@@ -47,12 +47,12 @@ class BaseLinks:
     @property
     def base_url(self):
         """Get the base url."""
-        return str(self.request._url)
+        return str(self.request._base_url)
 
     @property
     def url(self):
         """Get the current request url."""
-        return str(self.request.url)
+        return str(self.request._url)
 
     def resolve(self, url):
         """Resolve url to the current request url."""

@@ -12,7 +12,7 @@ from stac_pydantic import Collection, Item, ItemCollection
 from stac_pydantic.api import ConformanceClasses, LandingPage
 from stac_pydantic.shared import Link, MimeTypes, Relations
 
-from stac_fastapi.pgstac.models.links import CollectionLinks, ItemLinks, PagingLinks
+from stac_fastapi.pgstac.models.links import CollectionLinks, ItemLinks, PagingLinks, merge_params
 from stac_fastapi.pgstac.types.search import PgstacSearch
 from stac_fastapi.types.core import BaseCoreClient
 from stac_fastapi.types.errors import NotFoundError
@@ -39,6 +39,11 @@ class CoreCrudClient(BaseCoreClient):
             deployment_stage=settings.deployment_stage
             return f"https://{apigateway_id}.execute-api.{aws_region}.amazonaws.com/{deployment_stage}/"
 
+    async def modify_urls(self, request):
+        request._base_url = CoreCrudClient._get_base_url(request)
+        request._url = merge_params(urljoin(request._base_url, request.scope["path"]), request.query_params)
+        return request
+
     async def landing_page(self, **kwargs) -> ORJSONResponse:
         """Landing page.
 
@@ -48,8 +53,7 @@ class CoreCrudClient(BaseCoreClient):
             API landing page, serving as an entry point to the API.
         """
         request = kwargs["request"]
-        base_url = CoreCrudClient._get_base_url(request)
-        request._url = base_url
+        request = await self.modify_urls(kwargs["request"])
         landing_page = LandingPage(
             title="Arturo STAC API",
             description="Arturo raster datastore",
@@ -57,30 +61,30 @@ class CoreCrudClient(BaseCoreClient):
                 Link(
                     rel=Relations.self,
                     type=MimeTypes.json,
-                    href=str(base_url),
+                    href=str(request._base_url),
                 ),
                 Link(
                     rel=Relations.docs,
                     type=MimeTypes.html,
                     title="OpenAPI docs",
-                    href=urljoin(base_url, "docs"),
+                    href=urljoin(request._base_url, "docs"),
                 ),
                 Link(
                     rel=Relations.conformance,
                     type=MimeTypes.json,
                     title="STAC/WFS3 conformance classes implemented by this server",
-                    href=urljoin(base_url, "conformance"),
+                    href=urljoin(request._base_url, "conformance"),
                 ),
                 Link(
                     rel=Relations.search,
                     type=MimeTypes.geojson,
                     title="STAC search",
-                    href=urljoin(base_url, "search"),
+                    href=urljoin(request._base_url, "search"),
                 ),
                 Link(
                     rel="data",
                     type=MimeTypes.json,
-                    href=urljoin(base_url, "collections"),
+                    href=urljoin(request._base_url, "collections"),
                 ),
             ],
         )
@@ -106,8 +110,8 @@ class CoreCrudClient(BaseCoreClient):
 
     async def _all_collections_func(self, **kwargs) -> List[Dict]:
         """Read all collections from the database."""
-        request = kwargs["request"]
-        request._url = CoreCrudClient._get_base_url(request)
+        request = await self.modify_urls(kwargs["request"])
+
         pool = request.app.state.readpool
 
         async with pool.acquire() as conn:
@@ -144,8 +148,8 @@ class CoreCrudClient(BaseCoreClient):
         Returns:
             Collection.
         """
-        request = kwargs["request"]
-        request._url = CoreCrudClient._get_base_url(request)
+        request = await self.modify_urls(kwargs["request"])
+
         pool = kwargs["request"].app.state.readpool
         async with pool.acquire() as conn:
             q, p = render(
@@ -176,8 +180,8 @@ class CoreCrudClient(BaseCoreClient):
         Returns:
             ItemCollection containing items which match the search criteria.
         """
-        request = kwargs["request"]
-        request._url = CoreCrudClient._get_base_url(request)
+        request = await self.modify_urls(kwargs["request"])
+
         pool = request.app.state.readpool
 
         # pool = kwargs["request"].app.state.readpool
